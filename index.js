@@ -5,19 +5,14 @@ var io = require('socket.io')(http);
 
 const TB = require("./TB/TB.js");
 
-//app.use(cookieParser());
 app.use(express.static("/public/"));
 
 app.get('/', function(req, res) {
   res.json(TB.Status);
 });
 
-app.get('/test', function(req, res) {
-  res.sendFile(`${__dirname}/test.html`);
-});
-
-http.listen(3001, function() {
-  console.log('[WEB] Listening on port 3001...');
+http.listen(3000, function() {
+  console.log('[WEB] Listening on port 3000...');
   TB.Init()
 });
 
@@ -48,8 +43,6 @@ io.on('connection', function (socket) {
   })
 
   socket.on('items', function (data, callback) {
-    //console.log(data);
-
     var items = [];
     for (var item_id in TB.Data.items) {
       items.push(TB.Data.items[item_id]);
@@ -74,7 +67,6 @@ io.on('connection', function (socket) {
         val_a = a.profit3 ? a.profit3.scrap : null;
         val_b = b.profit3 ? b.profit3.scrap : null;
       }
-
       return val_b - val_a;
     });
 
