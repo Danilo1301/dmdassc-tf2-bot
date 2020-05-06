@@ -55,6 +55,27 @@ class TBUtils {
      }
      return result;
   }
+
+  static millisecondsToHuman(ms) {
+    const seconds = Math.floor((ms / 1000) % 60);
+    const minutes = Math.floor((ms / 1000 / 60) % 60);
+    const hours = Math.floor(ms / 1000 / 60 / 60);
+
+    const humanized = [
+      this.pad(hours.toString(), 2),
+      this.pad(minutes.toString(), 2),
+      this.pad(seconds.toString(), 2),
+    ].join(':');
+
+    return humanized;
+  }
+
+  static pad(n, width, z) {
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+  }
+
 }
 
 module.exports = TBUtils;

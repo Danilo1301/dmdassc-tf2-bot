@@ -1,6 +1,7 @@
 const TBRequest = require("./TBRequest");
 const TBEvents = require("./TBEvents");
 const TBConversor = require("./TBConversor");
+const TBUtils = require("./TBUtils");
 
 const TBStn = require("./TBStn");
 const TBBackpack = require("./TBBackpack");
@@ -15,6 +16,10 @@ class TBQuery {
   static on = this.events.Setup();
 
   static items_completed = 0;
+
+  static query_itemStartedAt = null;
+  static query_times = [];
+  static estimated_time = null;
 
   static AddItem(item) {
     //console.log(`Adding to query`)
@@ -45,6 +50,12 @@ class TBQuery {
       self.query.shift();
       return self.SearchNext();
     }
+
+    self.events.TriggerEvent("search_item_begin", [item]);
+
+    self.query_itemStartedAt = Date.now();
+
+
 
     item.price = {};
 
@@ -101,6 +112,19 @@ class TBQuery {
       self.items_completed++;
 
       self.events.TriggerEvent("search_item_completed", [item, self.query.length]);
+
+      self.query_times.push(Date.now() - self.query_itemStartedAt);
+
+      if(self.query_times.length > 12) {
+        self.query_times.splice(0, 1);
+      }
+
+      var s = 0;
+      for (var t of self.query_times) {
+        s += t;
+      }
+      self.estimated_time = (s / self.query_times.length)*self.query.length;
+
 
       setTimeout(()=> {
         self.SearchNext();

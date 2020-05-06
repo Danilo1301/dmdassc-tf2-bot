@@ -8,16 +8,13 @@ const TBQuery = require("./TBQuery");
 const TBBackpack = require("./TBBackpack");
 const TBStn = require("./TBStn");
 
-
-
 class TB {
   static updateTime = 2*1000*60*60*24 //*0
 
   static Data = {items: {}};
 
   static Status = {
-    code: 0,
-    current_item: null
+    code: 0
   }
 
   static items_custom_urls = [
@@ -32,16 +29,30 @@ class TB {
     TBStn.Data = TBStorage.ReadFile("stn") || {};
     this.Data = TBStorage.ReadFile("data") || {};
 
-    if(!TBStn.Data.lastUpdated || Date.now() - TBStn.Data.lastUpdated >= this.updateTime) {
-      return this.GetItemsInformation().then(this.ProcessItems.bind(this));
-    }
+    var self = this;
 
-    this.ProcessItems();
+    TBBackpack.GetItemInfo("https://backpack.tf/stats/Unique/Mann%20Co.%20Supply%20Crate%20Key/Tradable/Craftable").then((info) => {
+
+      if(info.best_to_sell) {
+        self.Data.key_price = info.best_to_sell.price;
+      }
+      TBConversor.SetKeyPrice(self.Data.key_price);
+
+      console.log(`Key price is: ${TBConversor.key.string}`);
+
+      if(!TBStn.Data.lastUpdated || Date.now() - TBStn.Data.lastUpdated >= this.updateTime) {
+        return this.GetItemsInformation().then(this.ProcessItems.bind(this));
+      }
+
+      this.ProcessItems();
+    });
   }
 
   static GetItemsInformation() {
     var self = this;
     return new Promise(function(resolve) {
+
+      self.Status.code = 1;
 
       TBBackpack.GetSpreadsheet().then((spreadsheet) => {
         TBBackpack.Data.items = spreadsheet;
@@ -49,29 +60,31 @@ class TB {
 
         TBStorage.StoreInFile("backpack", TBBackpack.Data);
 
-        console.log("getting key")
+        self.Status.code = 2;
 
-        TBBackpack.GetItemInfo("https://backpack.tf/stats/Unique/Mann%20Co.%20Supply%20Crate%20Key/Tradable/Craftable").then((info) => {
+        TBStn.on("getitems_progress", (info) => {
+          self.Status.code = 3;
 
-          if(info.best_to_sell) {
-            self.Data.key_price = info.best_to_sell.price;
-          }
-          TBConversor.SetKeyPrice(self.Data.key_price);
+          info.categories = [TBStn.categories.indexOf(info.category)+1, TBStn.categories.length];
 
-          console.log(`Key price is: ${TBConversor.key.string}`);
+          self.Status.info = info;
 
-          TBStn.GetItems().then((stn_items) => {
-            console.log(`Got ${stn_items.length} items from ${TBStn.categories.length} categories`);
 
-            TBStn.Data.items = stn_items;
-            TBStn.Data.lastUpdated = Date.now();
+          console.log(info);
+        })
 
-            TBStorage.StoreInFile("stn", TBStn.Data);
-            console.log(TBStn.Data);
+        TBStn.GetItems().then((stn_items) => {
+          console.log(`Got ${stn_items.length} items from ${TBStn.categories.length} categories`);
 
-            resolve();
-          })
-        });
+          TBStn.Data.items = stn_items;
+          TBStn.Data.lastUpdated = Date.now();
+
+          TBStorage.StoreInFile("stn", TBStn.Data);
+          console.log(TBStn.Data);
+
+          resolve();
+        })
+
 
       })
 
@@ -80,6 +93,7 @@ class TB {
 
   static ProcessItems() {
     console.log(`TBStn.Data.items: ${TBStn.Data.items.length}\nTBBackpack.Data.items: ${TBBackpack.Data.items.length}`)
+
 
     var items = TBStn.Data.items;
 
@@ -114,8 +128,6 @@ class TB {
 
       n++;
 
-      //TB.Data.items[id].href = item.href;
-
       if(!TB.Data.items[id].urls) {
         TB.Data.items[id].urls = {stn: "https://stntrading.eu" + item.href, backpack: ""};
       }
@@ -145,11 +157,21 @@ class TB {
     console.log(`Total of ${n} items`)
     //--
 
+
+
+    TBQuery.on("search_item_begin", (item) => {
+      //console.log("begin ", item)
+
+      this.Status.info.current_item = item;
+    });
+
     TBQuery.on("search_item_completed", (item, left)=> {
-      console.log("search_item_completed", left, item.full_name)
+      //console.log("search_item_completed", left, item.full_name)
 
       TB.Data.items[item.id] = item;
+      this.Status.info.estimated_time = TBQuery.estimated_time;
 
+      //console.log(TBQuery.estimated_time)
 
       if(TBQuery.items_completed % 30 == 0) {
         console.log("Saving..")
@@ -166,6 +188,11 @@ class TB {
 
   static AddRandomItemsToQuery()
   {
+    this.Status.code = 5;
+    this.Status.info = {estimated_time: null, current_item: null};
+
+    console.log(this.Status.info)
+
     var random_items = [];
 
     for (var id in TB.Data.items) { random_items.push(TB.Data.items[id]); }
@@ -173,8 +200,27 @@ class TB {
     while (random_items.length > 0) {
       TBQuery.AddItem(random_items.splice(Math.round(Math.random()*(random_items.length-1)), 1)[0]);
     }
-    console.log(`Starting queue with ${TBQuery.query.length} items`)
+    console.log(`Starting queue with ${TBQuery.query.length} items`);
+
+    //return console.log("Dont start")
+
     TBQuery.SearchNext();
+  }
+
+  static ListenUpdate(e, fn) {
+    TBQuery.on(e, fn);
+  }
+
+  static GetBlackList() {
+    return TBBackpack.offer_blacklist_words;
+  }
+
+  static SetBlackList(words) {
+    return TBBackpack.offer_blacklist_words = words;
+  }
+
+  static ManualUpdateItem(itemid) {
+    TBQuery.toAdd_query.push(TB.Data.items[itemid]);
   }
 }
 

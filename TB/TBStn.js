@@ -1,9 +1,13 @@
 const TBUtils = require("./TBUtils");
 const TBRequest = require("./TBRequest");
 const TBConversor = require("./TBConversor");
+const TBEvents = require("./TBEvents");
 
 class TBStn {
   static categories = ["tf2-items", "tf2-hats", "tf2-stranges", "tf2-weapons", "tf2-vintages", "tf2-genuines"];
+
+  static events = new TBEvents();
+  static on = this.events.Setup();
 
   static GetItems() {
     var self = this;
@@ -42,7 +46,8 @@ class TBStn {
 
             items = items.concat(page_items);
 
-            console.log(`[tf2] Found ${page_items.length} items in '${category}' page ${i} (Total: ${items.length})`)
+
+            self.events.TriggerEvent("getitems_progress", [{items: items.length, category: category, page: i}]);
 
             reslv();
           });
