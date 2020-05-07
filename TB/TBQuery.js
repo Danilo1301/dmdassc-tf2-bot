@@ -128,7 +128,7 @@ class TBQuery {
 
       setTimeout(()=> {
         self.SearchNext();
-      },500)
+      },1000)
 
 
     }).catch((e)=> {

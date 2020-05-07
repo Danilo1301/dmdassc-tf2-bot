@@ -48,8 +48,11 @@ class TBStn {
 
 
             self.events.TriggerEvent("getitems_progress", [{items: items.length, category: category, page: i}]);
-
-            reslv();
+            
+            console.log("getitems_progress")
+            
+            setTimeout(() => { reslv(); }, 1000);
+            
           });
 
         }).then(loop.bind(self, i+1));
@@ -118,7 +121,7 @@ class TBStn {
     return new Promise(function(resolve) {
       TBRequest.GetBody(url).then((body)=>{
         var info = {};
-
+        
         var n = body.indexOf('<div class="stl-bx my-2">');
         var s = body.slice(n, body.indexOf('<div class="col-md-6 col-lg-7 col-xl-8">', n));
         var es = TBUtils.getElementsInString(s);
