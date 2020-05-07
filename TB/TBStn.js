@@ -49,7 +49,10 @@ class TBStn {
 
             self.events.TriggerEvent("getitems_progress", [{items: items.length, category: category, page: i}]);
 
-            reslv();
+            console.log("getitems_progress")
+
+            setTimeout(() => { reslv(); }, 1000);
+
           });
 
         }).then(loop.bind(self, i+1));
