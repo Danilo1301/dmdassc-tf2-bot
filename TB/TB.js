@@ -9,7 +9,7 @@ const TBBackpack = require("./TBBackpack");
 const TBStn = require("./TBStn");
 
 class TB {
-  static updateTime = 2*1000*60*60*24 //*0
+  static updateTime = 99999999*1000*60*60*24 //*0
 
   static Data = {items: {}};
 
