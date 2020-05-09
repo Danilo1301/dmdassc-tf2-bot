@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const data_path = ".data/"
+const data_path = "data/"
 
 class TBStorage {
   static ReadFile(file)

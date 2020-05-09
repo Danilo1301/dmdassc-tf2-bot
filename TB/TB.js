@@ -9,7 +9,7 @@ const TBBackpack = require("./TBBackpack");
 const TBStn = require("./TBStn");
 
 class TB {
-  static updateTime = 99999999*1000*60*60*24 //*0
+  static updateTime = 2*1000*60*60*24 //*0
 
   static Data = {items: {}};
 
@@ -41,7 +41,7 @@ class TB {
       console.log(`Key price is: ${TBConversor.key.string}`);
 
       if(!TBStn.Data.lastUpdated || Date.now() - TBStn.Data.lastUpdated >= this.updateTime) {
-        return this.GetItemsInformation().then(this.ProcessItems.bind(this));
+        //return this.GetItemsInformation().then(this.ProcessItems.bind(this));
       }
 
       this.ProcessItems();
