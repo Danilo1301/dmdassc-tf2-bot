@@ -5,7 +5,7 @@ var io = require('socket.io')(http);
 
 const TB = require("./TB/TB.js");
 
-app.use(express.static("/public/"));
+app.use(express.static('public'));
 
 app.get('/', function(req, res) {
   res.sendFile(`${__dirname}/public/bot.html`);

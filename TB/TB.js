@@ -173,14 +173,18 @@ class TB {
 
       //console.log(TBQuery.estimated_time)
 
-      if(TBQuery.items_completed % 30 == 0) {
+      if(TBQuery.items_completed % 5 == 0) {
         console.log("Saving..")
         TBStorage.StoreInFile("data", TB.Data);
       }
     })
 
     TBQuery.on("search_ended", ()=> {
-      TB.AddRandomItemsToQuery();
+      console.log("Query finished. Waiting 30 minutes to start another!")
+      setTimeout(()=> {
+        TB.AddRandomItemsToQuery();
+      }, 30*1000*60)
+
     });
 
     this.AddRandomItemsToQuery();
@@ -191,8 +195,6 @@ class TB {
     this.Status.code = 5;
     this.Status.info = {estimated_time: null, current_item: null};
 
-    console.log(this.Status.info)
-
     var random_items = [];
 
     for (var id in TB.Data.items) { random_items.push(TB.Data.items[id]); }
@@ -202,7 +204,8 @@ class TB {
     }
     console.log(`Starting queue with ${TBQuery.query.length} items`);
 
-    //return console.log("Dont start")
+
+    return console.log("Dont start");
 
     TBQuery.SearchNext();
   }
