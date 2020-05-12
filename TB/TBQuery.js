@@ -26,6 +26,59 @@ class TBQuery {
     this.query.push(item);
   }
 
+  static SearchItem(item) {
+    return new Promise(function(resolve) {
+      var ps = [];
+
+      ps.push(TBStn.GetItemInfo(item.urls.stn));
+      ps.push(TBBackpack.GetItemInfo(item.urls.backpack));
+
+      Promise.all(ps).then(function(values) {
+        var info_stn = values[0];
+        var info_backpack = values[1];
+
+        item.price = {};
+
+        item.marketplace_price = info_backpack.price_marketplace;
+
+        item.price.stn = {};
+        item.price.backpack = {};
+
+        item.max_stock = info_stn.max_stock;
+        item.stock = info_stn.stock;
+
+        item.price.stn.buy = info_stn.price_buy;
+        item.price.stn.sell = info_stn.price_sell;
+
+        item.price.backpack.buy = info_backpack.best_to_buy ? info_backpack.best_to_buy.price : null;
+        item.price.backpack.sell = info_backpack.best_to_sell ? info_backpack.best_to_sell.price : null;
+
+        if(item.price.backpack.sell && item.price.stn.buy) {
+          item.profit1 = TBConversor.Convert(item.price.backpack.sell.scrap - item.price.stn.buy.scrap);
+        } else {
+          item.profit1 = null;
+        }
+
+        if(item.price.stn.sell && item.price.backpack.buy) {
+          item.profit2 = TBConversor.Convert(item.price.stn.sell.scrap - item.price.backpack.buy.scrap);
+        } else {
+          item.profit2 = null;
+        }
+
+        if(item.price.backpack.sell && item.price.stn.sell) {
+          item.profit3 = TBConversor.Convert(item.price.stn.sell.scrap - item.price.backpack.sell.scrap);
+        } else {
+          item.profit3 = null;
+        }
+
+        item.updated_at = Date.now();
+
+        resolve(item);
+      });
+
+    });
+  }
+
   static SearchNext() {
     if(this.toAdd_query.length != 0) {
       while (this.toAdd_query.length > 0) {

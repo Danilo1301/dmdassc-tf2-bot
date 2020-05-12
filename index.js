@@ -5,9 +5,25 @@ var io = require('socket.io')(http);
 
 const TB = require("./TB/TB.js");
 
+app.use(express.urlencoded())
 app.use(express.static('public'));
 
 app.get('/', function(req, res) {
+  res.sendFile(`${__dirname}/public/auth.html`);
+});
+
+app.post('/', function(req, res) {
+  const password = req.body.password;
+
+  if(password == "1599") {
+    res.sendFile(`${__dirname}/public/bot.html`);
+  } else {
+    res.sendFile(`${__dirname}/public/auth-wrongpass.html`);
+  }
+
+});
+
+app.get('/test', function(req, res) {
   res.sendFile(`${__dirname}/public/bot.html`);
 });
 
@@ -23,30 +39,9 @@ http.listen(3000, function() {
 io.on('connection', function (socket) {
   console.log("[SOCKET_SERVER] New connection");
 
-  socket.on("update_item", (itemid) => {
-    TB.ManualUpdateItem(itemid);
-  });
+  TB.OnConnection(socket);
 
-  socket.on("get_item_info", (itemid, callback) => {
-    callback(TB.Data.items[itemid]);
-  });
-
-  socket.on("get_blacklist", (callback) => {
-    callback(TB.GetBlackList())
-  })
-
-  socket.on("save_blacklist", (value) => {
-    var words = value.split(" ");
-    while (words.includes(" ")) {
-      words.splice(words.indexOf(" "), 1);
-    }
-    while (words.includes("")) {
-      words.splice(words.indexOf(""), 1);
-    }
-    TB.SetBlackList(words);
-  })
-
-  socket.on('items', function (data, callback) {
+  socket.on('dhhgg', function (data, callback) {
     var items = [];
     for (var item_id in TB.Data.items) {
       items.push(TB.Data.items[item_id]);
@@ -75,10 +70,5 @@ io.on('connection', function (socket) {
     });
 
     callback({items: items.slice(data.i, data.i+data.m), pages: Math.ceil(items.length / data.m)});
-  });
-
-  TB.ListenUpdate("search_item_completed", (item, left) => {
-    if(!socket.connected) { return; }
-    socket.emit("item_completed", item.id, left);
   });
 });

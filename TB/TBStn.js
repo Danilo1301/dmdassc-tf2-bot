@@ -72,6 +72,8 @@ class TBStn {
     var self = this;
     return new Promise(function(resolve, reject) {
       TBRequest.GetBody(`https://stntrading.eu/backend/itemOverviewAjax?query=0&page=${page}&category=${category}&sort=1`).then((body)=>{
+
+      
         var items = [];
         var items_html = TBUtils.splitStringSegments(JSON.parse(TBUtils.decodeEntities(body)).html, "<div class='search-res-item-wrap'>", "</div></div></a></div>");
 

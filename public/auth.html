@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>TF2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="auth.css">
+  </head>
+  <body>
+    <form id="auth" class="form-auth border centered" method="POST" action="/">
+
+      <div class="container" id="main">
+        <h5 class="mb-3">Senha:</h5>
+        <input type="password" name="password" class="form-control mb-3" placeholder="Senha" required="">
+        <button class="btn btn-primary btn-block" type="submit">Entrar</button>
+      </div>
+
+      <div class="container" id="loading" style="display: none;">
+        <div class="d-flex justify-content-center mt-2">
+          <div class="spinner-border" role="status"></div>
+        </div>
+        <div class="d-flex justify-content-center">
+          <h5 class="mt-2">Aguarde...</h5>
+        </div>
+      </div>
+
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>
