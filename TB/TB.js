@@ -13,7 +13,7 @@ class TB {
   static Indexed_Items = {};
   static Items = {};
   static Data = {
-    settings: {time_between_interval: 30, interval_time: 8, stnitems_updates: 1, max_delay_between_items: 3},
+    settings: {time_between_interval: 60, interval_time: 10, stnitems_updates: 0, max_delay_between_items: 1},
     key_price: {}
   };
   static CustomQuery = [];
@@ -45,6 +45,74 @@ class TB {
 
       this.InitTimer();
     });
+  }
+
+  static AddItems(stn_items) {
+    var items = [];
+
+    for (var stn_item of stn_items) {
+      var item = {};
+
+      item.full_name = stn_item.real_name;
+      item.name = stn_item.name;
+      item.craftable = stn_item.craftable;
+      item.festive = stn_item.festive;
+      item.quality = TBQuality.GetQualityById(stn_item.qualityid);
+      item.img = stn_item.icon;
+
+      if(!item.urls) {
+        item.urls = {stn: stn_item.href, backpack: ""};
+      }
+
+      if(!item.urls.backpack) {
+        for (var spreadsheet_item of TBBackpack.Data.items) {
+          if(stn_item.craftable == spreadsheet_item.craftable && (stn_item.name.toLowerCase() == spreadsheet_item.name.toLowerCase() || stn_item.name.toLowerCase().replace("the ", "") == spreadsheet_item.name.toLowerCase().replace("the ", ""))) {
+            var ur = spreadsheet_item.qualities[item.quality.id];
+            if(ur != undefined) {
+              item.urls.backpack = "https://backpack.tf" + ur;
+            }
+            break;
+          }
+        }
+      }
+
+      if(!item.urls.backpack) {
+        for (var cu of TB.items_custom_urls) {
+          if(cu.name == item.full_name && cu.craftable == item.craftable && cu.quality == item.quality.id) {
+            item.urls.backpack = cu.url;
+            break;
+          }
+        }
+      }
+
+      items.push(item);
+
+    }
+
+    console.log(`Got ${items.length} items`);
+
+    for (var item of items) {
+      item.id = TBUtils.generateRandomKey(20);
+
+      var found_item = null;
+
+      for (var stored_item_id in TB.Items) {
+        var stored_item = TB.Items[stored_item_id];
+        if(stored_item.full_name == item.full_name && stored_item.craftable == item.craftable && stored_item.quality.id == item.quality.id) {
+          found_item = stored_item;
+          break;
+        }
+      }
+
+      if(found_item) {
+        //console.log("already added, id " + found_item.id)
+      } else {
+        TB.Items[item.id] = item;
+        //console.log("new, id " + item.id)
+      }
+    }
+
+    //console.log(items)
   }
 
   static OnItemCompleted(item) {
@@ -128,107 +196,106 @@ class TB {
         } else {
           if(interval_started_at == null) {
 
-            if(Math.ceil((Date.now() - started_at)/(time_between_interval / this.Data.settings.stnitems_updates)) != stnsearch_completed) {
-              stnsearch_completed += 1
+            if(false) {
+              if(Math.ceil((Date.now() - started_at)/(time_between_interval / this.Data.settings.stnitems_updates)) != stnsearch_completed) {
+                stnsearch_completed += 1
 
-              task.started = Date.now();
-              task.end = task.started + max_delay_between_items;
-              task.completed = false;
+                task.started = Date.now();
+                task.end = task.started + max_delay_between_items;
+                task.completed = false;
 
-              console.log(`PAGE ${TBStn.categories[category_search.i]} ${category_search.page}`);
+                console.log(`PAGE ${TBStn.categories[category_search.i]} ${category_search.page}`);
 
-              category_search.page += 1;
+                category_search.page += 1;
 
-              TBStn.GetItemsInPage(TBStn.categories[category_search.i], category_search.page).then((page_items)=>{
-                if(page_items.length == 0) {
-                  category_search.i += 1;
-                  category_search.page = 1;
+                TBStn.GetItemsInPage(TBStn.categories[category_search.i], category_search.page).then((page_items)=>{
+                  if(page_items.length == 0) {
+                    category_search.i += 1;
+                    category_search.page = 1;
 
-                  if(category_search.i >= TBStn.categories.length-1) {
-                    category_search.i = 0;
+                    if(category_search.i >= TBStn.categories.length-1) {
+                      category_search.i = 0;
+                    }
                   }
-                }
-                console.log(page_items.length, category_search)
+                  console.log(page_items.length, category_search)
 
-                TB.ProcessItems(page_items).then((items) => {
-                  console.log(`Got ${items.length} items`);
+                  TB.ProcessItems(page_items).then((items) => {
+                    console.log(`Got ${items.length} items`);
 
 
-                  for (var item of items) {
-                    item.id = TBUtils.generateRandomKey(20);
+                    for (var item of items) {
+                      item.id = TBUtils.generateRandomKey(20);
 
-                    var found_item = null;
+                      var found_item = null;
 
-                    for (var stored_item_id in TB.Items) {
-                      var stored_item = TB.Items[stored_item_id];
-                      if(stored_item.full_name == item.full_name && stored_item.craftable == item.craftable && stored_item.quality.id == item.quality.id) {
-                        found_item = stored_item;
-                        break;
+                      for (var stored_item_id in TB.Items) {
+                        var stored_item = TB.Items[stored_item_id];
+                        if(stored_item.full_name == item.full_name && stored_item.craftable == item.craftable && stored_item.quality.id == item.quality.id) {
+                          found_item = stored_item;
+                          break;
+                        }
                       }
+
+                      if(found_item) {
+                        //console.log("already added, id " + found_item.id)
+                      } else {
+                        TB.Items[item.id] = item;
+                        //console.log("new, id " + item.id)
+                      }
+
+
+
                     }
 
-                    if(found_item) {
-                      //console.log("already added, id " + found_item.id)
-                    } else {
-                      TB.Items[item.id] = item;
-                      //console.log("new, id " + item.id)
-                    }
 
-
-
-                  }
-
-
-                  task.completed = true;
-
-                })
-
-                //task.completed = true;
-                //stnsearch_completed += 1
-              });
-
-            } else {
-              task.started = Date.now();
-              task.end = task.started + max_delay_between_items;
-              task.completed = false;
-
-              var n = 0;
-
-              var to_update = [];
-              for (var item_id in this.Items) {
-                var item = this.Items[item_id];
-
-                if(!item.updated_at || Date.now() - item.updated_at > 10*60*1000) {
-                  to_update.push(item);
-                }
-
-                n++;
-              }
-
-              var item = to_update[Math.round(Math.random()*(to_update.length-1))];
-
-              if(item) {
-                if(item.urls.backpack == "") {
-                  console.log(`No url`)
-                  task.completed = true;
-                } else {
-
-                  console.log(`ITEM (${item.id}) [${rnd}] (${to_update.length} / ${n} avalible)`);
-
-                  TBQuery.SearchItem(item).then(() => {
                     task.completed = true;
-                    TB.OnItemCompleted(item);
+
                   })
-                }
 
-              } else {
-                console.log(`No items`)
-                task.completed = true;
+                  //task.completed = true;
+                  //stnsearch_completed += 1
+                });
               }
-
-
             }
 
+
+            task.started = Date.now();
+            task.end = task.started + max_delay_between_items;
+            task.completed = false;
+
+            var n = 0;
+
+            var to_update = [];
+            for (var item_id in this.Items) {
+              var item = this.Items[item_id];
+
+              if(!item.updated_at || Date.now() - item.updated_at > 10*60*1000) {
+                to_update.push(item);
+              }
+
+              n++;
+            }
+
+            var item = to_update[Math.round(Math.random()*(to_update.length-1))];
+
+            if(item) {
+              if(item.urls.backpack == "") {
+                console.log(`No url`)
+                task.completed = true;
+              } else {
+
+                console.log(`ITEM (${item.id}) [${rnd}] (${to_update.length} / ${n} avalible)`);
+
+                TBQuery.SearchItem(item).then(() => {
+                  task.completed = true;
+                  TB.OnItemCompleted(item);
+                })
+              }
+
+            } else {
+              console.log(`No items`)
+              task.completed = true;
+            }
 
           }
         }
