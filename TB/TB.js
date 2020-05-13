@@ -13,7 +13,7 @@ class TB {
   static Indexed_Items = {};
   static Items = {};
   static Data = {
-    settings: {time_between_interval: 60, interval_time: 10, stnitems_updates: 0, max_delay_between_items: 1},
+    settings: {time_between_interval: 60, interval_time: 10, stnitems_updates: 0, max_delay_between_items: 3},
     key_price: {}
   };
   static CustomQuery = [];
@@ -161,7 +161,7 @@ class TB {
         for (var socket of this.Clients) {
           if(!socket.connected) { continue; }
 
-          socket.emit("items", items_profit1.slice(0, 10));
+          socket.emit("items", items_recent.slice(0, 10));
           //socket.emit("items", items_recent);
         }
       }

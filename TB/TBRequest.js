@@ -4,8 +4,35 @@ const TBConversor = require("./TBConversor");
 
 const fs = require("fs");
 
+const https = require('https');
+
 class TBRequest {
   static GetBody(url) {
+    var self = this;
+    return new Promise(function(resolve) {
+
+      https.get(url, (resp) => {
+      let data = '';
+
+      // A chunk of data has been recieved.
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      // The whole response has been received. Print out the result.
+      resp.on('end', () => {
+        console.log(JSON.parse(data).explanation);
+      });
+
+      }).on("error", (err) => {
+        console.log("Error: " + err.message);
+      });
+      
+    });
+  }
+
+
+  static OldGetBody(url) {
     var self = this;
     return new Promise(function(resolve) {
       const tryFetch = function() {
